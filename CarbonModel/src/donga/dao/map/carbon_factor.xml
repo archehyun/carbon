@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (c) 2010 IBM Corporation and others.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+   
+    Contributors:
+        IBM Corporation - initial API and implementation
+ -->
+
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DfTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="tb_carbon_factor">
+
+    	<select id="selectList" resultClass="donga.domain.CarbonInfo"  parameterClass ="donga.domain.CarbonInfo">
+		select * from tb_carbon_factor
+		<dynamic prepend="where">
+			<isNotNull property="energy_code" prepend="and">
+				energy_codee =#energy_code#
+			</isNotNull>
+			<isNotNull property="energy_name" prepend="and">
+				energy_code =#energy_code#
+			</isNotNull>
+		</dynamic>	
+	</select>
+	<insert id="insertCarbonFactor">
+	insert into tb_carbon_factor	
+	(
+		energy_code,
+		energy_name,
+		energy_unit,
+		conversion_factor,
+		kg_factor,
+		ton_factor
+	)
+	values
+	(		
+		#energy_code#,
+		#energy_name#,
+		#energy_unit#,
+		#conversion_factor#,
+		#kg_factor#,
+		#ton_factor#
+		
+	)
+	
+	</insert>
+	<update id="updateCarbonFactor">
+	update tb_carbon_factor
+	set
+	energy_name=#energy_name#,
+	energy_unit=#energy_unit#,
+	conversion_factor=#conversion_factor#,
+	kg_factor=#kg_factor#,
+	ton_factor=#ton_factor#    	
+	
+	where energy_code=#energy_code#
+	
+	</update>
+	<delete id="deleteCarbonFactor">
+	delete from tb_carbon_factor where energy_code = #energy_code#
+	</delete>
+    
+   
+	<!--  		
+	<update id="update" parameterClass="donga.carbon.CarbonInfo"">
+	    update tb_carbon_value set is_activate=#is_activate# where tid=#tid#
+	</update>
+	-->
+				
+</sqlMap>

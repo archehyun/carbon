@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Port">
+
+	<!-- ===========================================  
+		 
+		============================================== 
+-->
+ 
+ 
+	
+	
+
+	<select id="selectList" resultClass="donga.domain.PortInfo"  parameterClass ="donga.domain.PortInfo">
+		select * from tb_port
+		<dynamic prepend="where">
+			<isNotNull property="port_code" prepend="and">
+				port_code =#port_code#
+			</isNotNull>
+			<isNotNull property="port_name" prepend="and">
+				port_name =#port_name#
+			</isNotNull>
+			<isGreaterThan property="port_type" prepend="and" compareValue="0">
+				port_type =#port_type#
+			</isGreaterThan>			
+		</dynamic>	
+	</select>
+	<insert id="insert">
+	insert into tb_port	
+	(
+		port_code,
+		port_name,
+		port_berth,
+		port_type
+
+	)
+	values
+	(		
+		#port_code#,
+		#port_name#,
+		#port_berth#,
+		#port_type#
+		
+	)
+	
+	</insert>
+	<update id="update">
+	update tb_port
+	set
+	port_name=#port_name#,
+	port_berth=#port_berth#,
+	port_type=#port_type#
+	
+	where port_code=#port_code#
+	
+	</update>
+	<delete id="delete">
+	delete from tb_port where port_code = #port_code#
+	</delete>
+	
+	
+</sqlMap>

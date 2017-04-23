@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Equipment">
+
+	<!-- ===========================================  
+		 
+		============================================== 
+-->
+ 
+ 
+	
+	<!-- 장비목록 조회 -->
+
+	<select id="selectEquipmentList" resultClass="donga.domain.EquipmentInfo"  parameterClass ="donga.domain.EquipmentInfo">
+		select * from tb_equipment
+		<dynamic prepend="where">
+			<isNotNull property="equipment_code" prepend="and">
+				equipment_code =#equipment_code#
+			</isNotNull>
+			<isNotNull property="equipment_type_code" prepend="and">
+				equipment_type_code =#equipment_type_code#
+			</isNotNull>
+			<isNotNull property="equipment_name" prepend="and">
+				equipment_name =#equipment_name#
+			</isNotNull>
+		</dynamic>	
+	</select>
+
+	<select id="selectEquipmentTypeList" resultClass="donga.domain.EquipmentTypeInfo"  parameterClass ="donga.domain.EquipmentTypeInfo">
+		select * from tb_equipment_type, tb_carbon_factor where tb_equipment_type.energy_code =tb_carbon_factor.energy_code
+		<isNotNull property="equipment_type_code" prepend="and">
+				equipment_type_code =#equipment_type_code#
+		</isNotNull>
+	</select>
+
+	<select id="selectTruckList" resultClass="donga.domain.TruckTypeInfo"  parameterClass ="donga.domain.TruckTypeInfo">
+		select * from tb_truck, tb_carbon_factor where tb_truck.energy_code =tb_carbon_factor.energy_code
+		<isNotNull property="truck_type_code" prepend="and">
+				truck_type_code =#truck_type_code#
+		</isNotNull>
+	</select>	
+	
+	<select id="selectPortEquipmentList" parameterClass ="donga.domain.PortEquipmentInfo" resultClass="donga.domain.PortEquipmentInfo">
+	select * from tb_port_equipment	where port_code =#port_code# 
+	</select>
+	
+	
+	<!-- 사용 안함 -->
+	<select id="selectEquipmentCarbonValue" resultClass="donga.domain.PortEquipmentInfo" parameterClass="donga.domain.PortEquipmentInfo">
+	select port_code,tb_port_equipment.equipment_type_name,(consumption*conversion_factor*ton_factor*(44/12))/1000*equipment_count as 'carbon_value' from
+tb_port_equipment, tb_equipment_type,tb_carbon_factor
+where tb_port_equipment.equipment_type_name=tb_equipment_type.equipment_type_name and tb_carbon_factor.energy_code=tb_equipment_type.energy_code and tb_port_equipment.port_code=#port_code#
+	</select>
+	<select id="selectPortCarbonValue" resultClass="donga.domain.PortEquipmentInfo">	
+select port_code,sum((consumption*conversion_factor*ton_factor*(44/12))/1000*equipment_count) as 'carbon_value' from
+tb_port_equipment, tb_equipment_type,tb_carbon_factor
+where tb_port_equipment.equipment_type_name=tb_equipment_type.equipment_type_name and tb_carbon_factor.energy_code=tb_equipment_type.energy_code
+group by port_code
+	</select>
+	<select id="selectAreaCarbonValue" resultClass="donga.domain.PortEquipmentInfo" parameterClass="donga.domain.PortEquipmentInfo">
+	
+		select port_code,tb_port_equipment.area_type, sum((consumption*conversion_factor*ton_factor*(44/12))/1000*equipment_count) as 'carbon_value' from
+		tb_port_equipment, tb_equipment_type,tb_carbon_factor
+		where tb_port_equipment.equipment_type_name=tb_equipment_type.equipment_type_name and 
+		tb_carbon_factor.energy_code=tb_equipment_type.energy_code
+		and port_code=#port_code#
+		group by port_code,area_type
+
+	</select>
+	<insert id="insertEquipment">
+	insert into tb_equipment 	
+	(
+		equipment_code,
+		equipment_name,
+		equipment_type_code,
+		equipment_num,
+		equipment_model
+
+	)
+	values
+	(		
+		#equipment_code#,
+		#equipment_name#,
+		#equipment_type_code#,
+		#equipment_num#,
+		#equipment_model#
+		
+	)	
+	</insert>
+	<insert id="insertEquipmentType" parameterClass ="donga.domain.EquipmentTypeInfo">
+	insert into tb_equipment_type 	
+	(
+		equipment_type_code,
+		equipment_type_name,
+		energy_code,
+		consumption
+
+	)
+	values
+	(		
+		#equipment_type_code#,
+		#equipment_type_name#,
+		#energy_code#,
+		#consumption#
+		
+	)	
+	</insert>
+	<insert id="insertTruckType" parameterClass ="donga.domain.TruckTypeInfo">
+	insert into tb_truck 	
+	(
+		truck_type_code,
+		truck_type_name,
+		energy_code,
+		move_consumption,
+		wait_consumption,
+		move_time,
+		wait_time
+
+	)
+	values
+	(		
+		#truck_type_code#,
+		#truck_type_name#,
+		#energy_code#,
+		#move_consumption#,
+		#wait_consumption#,
+		#move_time#,
+		#wait_time#
+		
+	)	
+	</insert>	
+	<insert id="insertPortEquipment">
+	insert into tb_port_equipment 	
+	(
+		equipment_type_name,
+		port_code,
+		equipment_count,
+		area_type		
+
+	)
+	values
+	(		
+		#equipment_type_name#,
+		#port_code#,
+		#equipment_count#,
+		#area_type#	
+		
+	)	
+	</insert>		
+	<update id="updateEquipment"/>
+    
+	<update id="updateEquipmentType" parameterClass ="donga.domain.EquipmentTypeInfo">
+	update  tb_equipment_type
+	set
+	equipment_type_name=#equipment_type_name#,
+	energy_code=#energy_code#,
+	consumption=#consumption#	
+	
+	where equipment_type_code=#equipment_type_code#
+	
+	</update>
+
+	<update id="updateTruckType" parameterClass ="donga.domain.TruckTypeInfo">
+	update  tb_truck
+	set
+	truck_type_name=#truck_type_name#,
+	energy_code=#energy_code#,
+	move_consumption=#move_consumption#,	
+	wait_consumption=#move_consumption#,
+	move_time=#move_time#,	
+	wait_time=#wait_time#
+	
+	where truck_type_code=#truck_type_code#
+	
+	</update>	
+
+	<update id="updatePortEquipment" parameterClass ="donga.domain.PortEquipmentInfo">
+	update  tb_port_equipment
+	set	
+	equipment_count=#equipment_count#,
+	area_type=#area_type#
+	where equipment_type_name=#equipment_type_name# and port_code=#port_code#
+	
+	</update>	
+	
+	
+	<delete id="deleteTruckType" parameterClass ="donga.domain.TruckTypeInfo">
+	delete from tb_truck where truck_type_code = #truck_type_code#
+	</delete>
+	<delete id="deleteEquipment">
+	delete from tb_equipment where equipment_code = #equipment_code#
+	</delete>
+	<delete id="deleteEquipmentType">
+	delete from tb_equipment_type where equipment_type_code = #equipment_type_code#
+	</delete>
+	<delete id="deletePortEquipment" parameterClass ="donga.domain.PortEquipmentInfo">
+	delete from tb_port_equipment where equipment_type_name = #equipment_type_name# and port_code=#port_code#
+	</delete>		
+	
+	
+</sqlMap>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (c) 2010 IBM Corporation and others.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Eclipse Public License v1.0
+    which accompanies this distribution, and is available at
+    http://www.eclipse.org/legal/epl-v10.html
+   
+    Contributors:
+        IBM Corporation - initial API and implementation
+ -->
+
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DfTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="mysql_tb_carbon_result">
+     
+    <select id="selectTotalCarbonValue" resultClass="int">
+		SELECT   SUM(distance) AS Expr1 FROM      tb_carbon_value
+	</select>
+	<select id="selectResult" resultClass="donga.domain.ResultInfo" parameterClass="donga.domain.ResultInfo">
+		select * from tb_carbon_value order by updateTime
+	</select>
+	
+	<select id="selectSumByEquipmentCode" resultClass="donga.domain.ResultInfo" parameterClass="donga.domain.ResultInfo">
+		select
+		equipment_code,  (carbon_value*consumption*conversion_factor*ton_factor*44/12) as carbon_value, equipment_type_name, carbon_value as distance
+		from
+		(select equipment_code, carbon_value, equiptable.equipment_type_code, tb_equipment_type.equipment_type_name, tb_equipment_type.consumption, tb_equipment_type.energy_code
+		from
+		(select sumtable.equipment_code, sumtable.carbon_value, tb_equipment.equipment_type_code
+		from
+		(select equipment_code, sum(distance) as carbon_value from tb_carbon_value
+		group by equipment_code ) as sumtable, tb_equipment
+		where sumtable.equipment_code= tb_equipment.equipment_code) as equiptable, tb_equipment_type
+		where equiptable.equipment_type_code=tb_equipment_type.equipment_type_code) as enegytable, tb_carbon_factor
+		where enegytable.energy_code = tb_carbon_factor.energy_code
+	</select>
+	
+	<select id="selectSumByEquipmentType" resultClass="donga.domain.ResultInfo" parameterClass="donga.domain.ResultInfo">	
+		select
+		equipment_type_code,equipment_type_name,  (distance*consumption*conversion_factor*ton_factor*44/12) as carbon_value,  distance
+		from
+			(select
+			sumtable.equipment_type_code,	
+			distance,
+			energy_code,
+			tb_equipment_type.consumption,
+			equipment_type_name
+			from
+			(
+				select		
+				equipment_type_code,
+				
+				sum(distance) as distance		
+				from
+					(select
+					tb_carbon_value.equipment_code, distance,
+					tb_equipment.equipment_type_code
+					from tb_carbon_value,tb_equipment
+					where tb_carbon_value.equipment_code= tb_equipment.equipment_code)
+				 as valuetable
+				group by equipment_type_code)
+			as sumtable, tb_equipment_type
+			where sumtable.equipment_type_code = tb_equipment_type.equipment_type_code)
+			as resulttable, tb_carbon_factor
+		where resulttable.energy_code=tb_carbon_factor.energy_code
+
+
+	</select>		
+	
+	<insert id="insert" parameterClass="donga.domain.ResultInfo">
+		insert into tb_carbon_value ( equipment_code, updateTime, area_id,  distance, equipment_name,value_id)		
+		values		
+		(#equipment_code#, CURTIME(), #area_id#,  #distance#, #equipment_name#, #value_id#)
+	</insert>
+
+	
+
+	<delete id="delete" parameterClass="donga.domain.ResultInfo">
+	    	delete from tb_carbon_value
+	    	<isNotNull prepend="where" property="equipment_code"> 
+	    	equipment_code=#equipment_code#	
+	    	</isNotNull>
+	</delete>
+	<!--  		
+	<update id="update" parameterClass="donga.carbon.CarbonInfo"">
+	    update tb_carbon_value set is_activate=#is_activate# where tid=#tid#
+	</update>
+	-->
+				
+</sqlMap>
